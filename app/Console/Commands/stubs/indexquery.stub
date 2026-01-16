@@ -1,0 +1,156 @@
+<?php
+
+namespace App\IndexQueries;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use {{ modelClassName }};
+
+class {{ indexQueryClassName }}
+{
+    protected function perPages(): array
+    {
+        return [10, 25, 50, 100];
+    }
+
+    protected function defaults(): array
+    {
+        return [
+            'page' => 1,
+            'perPage' => 10,
+            'sort' => 'id', // The name of the default sort field.
+            'sortDir' => 'asc',
+            'f' => [
+                // The default value for the field filter. For example: 'name' => '',
+{{ defaults }}
+            ],
+        ];
+    }
+
+    protected function fields(): array
+    {
+        $fields = [
+            /*
+            List of fields to display. Array or string elements. 'field' or 'field' => array of properties.
+            Properties of each field (none are required):
+                'select' => string, default name of the field
+                'alias' => string, default name of the field
+                'label' => string, Default, if there is a label for the field, then the label.
+                            if there is not a label, then the name of the field.
+                'visible' => bool, default true,
+                'filterable' => bool, default true,
+                'sortable' => bool, default true,
+            */
+{{ fields }}
+        ];
+
+        return $this->normalizedFields($fields);
+    }
+
+    protected function normalizedFields($fields): array
+    {
+        $meta = new {{ modelClassShortName }}()->meta();
+        $normalized = [];
+
+        foreach ($fields as $fi => $v) {
+            if (is_array($v)) {
+                $field = $fi;
+                $vArray = $v;
+            } else {
+                $field = $v;
+                $vArray = [];
+            }
+
+            $normalized[$field] = [
+                'select' => $vArray['select'] ?? $field,
+                'alias' => $vArray['alias'] ?? $field,
+                'label' => isset($vArray['label']) ? $vArray['label'] : $meta->label($field),
+                'visible' => isset($vArray['visible']) ? $vArray['visible'] : true,
+                'filterable' => isset($vArray['filterable']) ? $vArray['filterable'] : true,
+                'sortable' => isset($vArray['sortable']) ? $vArray['sortable'] : true,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    public function getData(Request $request): array
+    {
+        $settings = $this->getSettings($request);
+
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
+        $query = {{ modelClassShortName }}::query();
+
+        $select = [];
+        foreach ($this->fields() as $fi => $v) {
+            $select[] = ($v['select'] ?? $fi) . " AS " . ($v['alias'] ?? $fi);
+        }
+
+        $rules = [
+            /*
+            Validation rules for fields. If a field is not valid, it will not be included in the query.
+            Example: 'field' => 'required|string',
+            */
+{{ rules }}
+        ];
+
+        $validator = Validator::make($settings['f'], $rules);
+        $errors = $validator->errors()->toArray();
+        foreach ($settings['f'] as $k => $v) {
+            if (!isset($errors[$k])) {
+                if (isset($this->fields()[$k]['select'])) {
+                    $field = $this->fields()[$k]['select'];
+                } else {
+                    $field = $k;
+                }
+
+                $query->where($field, 'ILIKE', "%{$v}%");
+            }
+        }
+
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $data */
+        $data = $query
+            ->select($select)
+            ->orderBy($settings['sort'], $settings['sortDir'])
+            ->paginate($settings['perPage'])
+            ->withQueryString();
+
+        return [
+            $this->defaults(),
+            $settings,
+            $this->fields(),
+            $this->perPages(),
+            $data,
+        ];
+    }
+
+    public function getSettings(Request $request): array
+    {
+        $settings = $this->defaults();
+
+        $page = $request->page;
+        if (ctype_digit($page) && $page > 0) {
+            $settings['page'] = $request->page;
+        }
+
+        if (in_array($request->perPage, $this->perPages())) {
+            $settings['perPage'] = $request->perPage;
+        }
+
+        if (in_array($request->sort, array_keys($this->fields())) && ($this->fields()[$request->sort]['sortable'] ?? true)) {
+            $settings['sort'] = $request->sort;
+        }
+
+        if (in_array($request->sortDir, ['asc', 'desc'])) {
+            $settings['sortDir'] = $request->sortDir;
+        }
+
+        if (is_array($request->f)) {
+            foreach ($request->f as $k => $v) {
+                $settings['f'][$k] = $v;
+            }
+        }
+
+        return $settings;
+    }
+}

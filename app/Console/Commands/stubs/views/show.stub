@@ -1,0 +1,11 @@
+@extends('layouts.app')
+
+@section('content')
+    <h1>Show {{ lowerModelName }}</h1>
+
+    @include('{{ pluralLowerModelName }}.route-menu')
+
+    <div class="table mt-4">
+{{ showItems }}
+    </div>
+@endsection

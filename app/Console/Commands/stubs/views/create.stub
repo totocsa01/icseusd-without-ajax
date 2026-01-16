@@ -1,0 +1,12 @@
+@extends('layouts.app')
+
+@section('content')
+    <h1>Create {{ lowerModelName }}</h1>
+
+    @include('{{ pluralLowerModelName }}.route-menu')
+
+    @include('{{ pluralLowerModelName }}.form', [
+        'action' => route('{{ pluralLowerModelName }}.store'),
+        '_method' => 'POST',
+    ])
+@endsection

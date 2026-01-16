@@ -1,0 +1,31 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ modelClassName }};
+
+class {{ metaClassName }}
+{
+    public function __construct(public {{ modelClassShortName }} $model) {}
+
+    public function label($attribute): string
+    {
+        $labels = $this->labels();
+
+        return $labels[$attribute] ?? $attribute;
+    }
+
+    public function labels(): array
+    {
+        return [
+{{ labels }}
+        ];
+    }
+
+    public function rules(): array
+    {
+        return [
+{{ rules }}
+        ];
+    }
+}

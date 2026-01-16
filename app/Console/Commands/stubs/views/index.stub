@@ -1,0 +1,154 @@
+@extends('layouts.app')
+
+@push('scripts')
+    <script src="{{ asset('vendor/totocsa/icseusda/js/icseusd.index.js') }}"></script>
+    <script>
+        var defaultParams = {{ getQueryParams($defaults) }};
+        var queryParams = {{ getQueryParams($settings) }};
+    </script>
+@endpush
+
+@php
+    function getQueryParams($val)
+    {
+        return Js::from($val);
+    }
+
+    function sorter($field, $v)
+    {
+        $label = $v['label'] ?? $field;
+        if ($v['sortable'] ?? true) {
+            return "<th class=\"sorter\" data-field=\"$field\">{$label}</th>";
+        } else {
+            return "<th>{$label}</th>";
+        }
+    }
+@endphp
+
+@section('title', '{{ pluralModelName }}')
+
+@section('content')
+
+    @if (session('alert'))
+        <div class="alert fixed hidden left-0 opacity-0 top-0 transition-opacity duration-[2s] ease-in-out w-full">
+            @php
+                switch (session('alert')['type']) {
+                    case 'success':
+                        $cssClasses = 'bg-green-700 text-gray-200 p-1';
+                        break;
+                    default:
+                        $cssClasses = 'p-1';
+                        break;
+                }
+            @endphp
+
+            <div class="{{ $cssClasses }}">
+                {{ session('alert')['message'] }}
+            </div>
+        </div>
+    @endif
+
+    <h1>{{ pluralModelName }}</h1>
+
+    @include('{{ pluralLowerModelName }}.route-menu')
+    @include('{{ pluralLowerModelName }}.destroy-confirm')
+
+    <div class="inline-block">
+        <form id="query-form" method="GET" action="{{ route($currentRouteName) }}" class="hidden">
+            <input type="hidden" name="page" value="{{ $settings['page'] }}">
+            <input type="hidden" name="perPage" value="{{ $settings['perPage'] }}">
+            <input type="hidden" name="sort" value="{{ $settings['sort'] }}">
+            <input type="hidden" name="sortDir" value="{{ $settings['sortDir'] }}">
+
+            @foreach ($settings['f'] as $field => $value)
+                <input type="hidden" name="f[{{ $field }}]" value="{{ $value }}">
+            @endforeach
+        </form>
+
+        <div class="flex flex-nowrap justify-between">
+            <div class="">
+                {{ $data->links() }}
+            </div>
+
+            <div class="ml-1">
+                <select name="perPage-select" class="perPage-select bg-white p-2 border border-gray-300 rounded-sm">
+                    @foreach ($perPages as $size)
+                        <option value="{{ $size }}" @selected($size == $settings['perPage'])>
+                            {{ $size }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <table class="v01 mb-2 ml-auto mr-auto mt-2">
+            <thead>
+                <tr>
+                    @foreach ($fields as $field => $v)
+                        @if ($v['visible'] ?? true)
+                            {!! sorter($field, $v) !!}
+                        @endif
+                    @endforeach
+                    <th></th>
+                </tr>
+
+                <tr>
+                    @foreach ($fields as $field => $v)
+                        @if ($v['visible'] ?? true)
+                            <th>
+                                @if ($v['filterable'] ?? true)
+                                    <input type="text" name="f[{{ $field }}]"
+                                        value="{{ $settings['f'][$field] }}" class="filter">
+                                @endif
+                            </th>
+                        @endif
+                    @endforeach
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if ($data->isEmpty())
+                    <tr>
+                        <td colspan="4" class="no-data">No data found.</td>
+                    </tr>
+                @else
+                    @foreach ($data->getCollection() as $da)
+                        <tr>
+                            @foreach ($fields as $field => $v)
+                                @if ($v['visible'] ?? true)
+                                    <td>{{ $da->{$field} }}</td>
+                                @endif
+                            @endforeach
+
+                            <td>
+                                <a class="bg-yellow-700 text-yellow-200 hover:bg-yellow-800 inline-block pb-1 pl-2 pr-2 pt-1 rounded"
+                                    href="{{ route('{{ pluralLowerModelName }}.edit', ['{{ lowerModelName }}' => $da->{{ lowerModelName }}id]) }}">Edit</a>
+                                <a class="bg-blue-700 text-blue-200 hover:bg-blue-800 inline-block pb-1 pl-2 pr-2 pt-1 rounded"
+                                    href="{{ route('{{ pluralLowerModelName }}.show', ['{{ lowerModelName }}' => $da->{{ lowerModelName }}id]) }}">Show</a>
+                                <a class="btn-destroy bg-red-700 text-red-200 hover:bg-red-800 inline-block pb-1 pl-2 pr-2 pt-1 rounded"
+                                    href="{{ route('{{ pluralLowerModelName }}.destroy', ['{{ lowerModelName }}' => $da->{{ lowerModelName }}id]) }}">Destroy</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <div class="flex flex-nowrap justify-between">
+            <div class="">
+                {{ $data->links() }}
+            </div>
+
+            <div class="ml-1">
+                <select name="perPage-select" class="perPage-select bg-white p-2 border border-gray-300 rounded-sm">
+                    @foreach ($perPages as $size)
+                        <option value="{{ $size }}" @selected($size == $settings['perPage'])>
+                            {{ $size }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+@endsection

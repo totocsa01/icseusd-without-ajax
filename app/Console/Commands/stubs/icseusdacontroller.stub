@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Controller;
+use App\Models\{{ modelClassShortName }};
+use App\IndexQueries\{{ modelClassShortName }}IndexQuery;
+
+class {{ modelClassShortName }}Controller extends Controller
+{
+    public string $currentRouteName;
+
+    public function __construct()
+    {
+        $this->currentRouteName = Route::currentRouteName();
+    }
+
+    public function index(Request $request)
+    {
+
+        [$defaults, $settings, $fields, $perPages, $data] = new {{ modelClassShortName }}IndexQuery()->getData($request);
+
+        /* Ha az aktuális lap az utolsó lap utánra mutat,
+        akkor az aktuális oldal az utolsó lap lesz és redirect. */
+        $currentPage = $data->currentPage();
+        $lastPage = $data->lastPage();
+        if ($lastPage < $currentPage) {
+            $params = $request->query();
+            $params['page'] = $lastPage;
+
+            return redirect()->route($this->currentRouteName, $params);
+        }
+
+        return view('{{ pluralModel }}.index', compact(
+            'defaults',
+            'settings',
+            'fields',
+            'perPages',
+            'data',
+        ), [
+            'currentRouteName' => $this->currentRouteName,
+        ]);
+    }
+
+    public function create()
+    {
+        return view('{{ pluralModel }}.create', [
+            '{{ lowerModel }}' => new {{ modelClassShortName }}(),
+            'currentRouteName' => $this->currentRouteName,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate(new {{ modelClassShortName }}()->meta()->rules());
+
+        {{ modelClassShortName }}::create($validated);
+
+        return redirect()
+            ->route('{{ pluralModel }}.index')
+            ->with('alert', [
+                'type' => 'success',
+                'message' => '{{ modelClassShortName }} created.',
+            ]);
+    }
+
+    public function edit({{ modelClassShortName }} {{ varModel }})
+    {
+        return view('{{ pluralModel }}.edit', compact('{{ lowerModel }}'), [
+            'currentRouteName' => $this->currentRouteName,
+        ]);
+    }
+
+    public function update(Request $request, {{ modelClassShortName }} {{ varModel }})
+    {
+        $validated = $request->validate({{ varModel }}->meta()->rules());
+
+        {{ varModel }}->update($validated);
+
+        return redirect()
+            ->route('{{ pluralModel }}.index')
+            ->with('alert', [
+                'type' => 'success',
+                'message' => '{{ modelClassShortName }} updated.',
+            ]);
+    }
+
+    public function show({{ modelClassShortName }} {{ varModel }})
+    {
+        return view('{{ pluralModel }}.show', compact('{{ lowerModel }}'), [
+            'currentRouteName' => $this->currentRouteName,
+        ]);
+    }
+
+    public function destroy(Request $request, {{ modelClassShortName }} {{ varModel }})
+    {
+        {{ varModel }}->delete();
+
+        $params = $request->post();
+        unset($params['_token']);
+        unset($params['_method']);
+
+        return redirect()
+            ->route('{{ pluralModel }}.index', $params)
+            ->with('alert', [
+                'type' => 'success',
+                'message' => '{{ modelClassShortName }} deleted.',
+            ]);
+    }
+}

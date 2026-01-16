@@ -1,0 +1,49 @@
+<div id="destroy-confirm" class="bg-gray-900/30 w-full hidden h-full fixed text-center top-0 left-0 z-50">
+    <form id="destroy-form" method="POST" action="#" class="inline-block bg-white mt-8 p-2">
+        @method('DELETE')
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+        <div class="mb-2 mt-2">Are you sure you want to delete it?</div>
+
+        <button type="button" id="destroy_confirm_cancel"
+            class="inline-block bg-gray-800 text-gray-200 mr-2 pb-0.5 pl-2 pr-2 pt-0.5 rounded">Cancel</button>
+        <button type="submit"
+            class="inline-block bg-red-800 text-gray-200 ml-2 pb-0.5 pl-2 pr-2 pt-0.5 rounded">Delete</button>
+    </form>
+</div>
+
+<script>
+    const destroyConfirm = document.getElementById('destroy-confirm')
+    const destroyForm = document.getElementById('destroy-form')
+
+    document.addEventListener('DOMContentLoaded', function() {
+        for (let i of document.getElementsByClassName('btn-destroy')) {
+            i.addEventListener('click', (event) => {
+                event.preventDefault()
+                destroyForm.attributes.action.value = event.srcElement.attributes.href.value
+                destroyConfirm.style.display = 'block'
+            })
+        }
+    })
+
+    destroyForm.addEventListener('submit', (event) => {
+        if (typeof queryForm === 'object') {
+            destroyForm.innerHTML += queryForm.innerHTML
+            formRemoveNeedlessElements(destroyForm)
+        }
+    })
+
+    destroyConfirm.addEventListener('click', (event) => {
+        // Ha a formon kívül volt a click, akkor a confirm elrejtése.
+        if (!destroyForm.contains(event.srcElement)) {
+            event.preventDefault()
+            destroyConfirm.style.display = 'none'
+        }
+    })
+
+    document.getElementById('destroy_confirm_cancel')
+        .addEventListener('click', (event) => {
+            event.preventDefault()
+            destroyConfirm.style.display = 'none'
+        })
+</script>

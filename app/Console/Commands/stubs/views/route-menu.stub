@@ -1,0 +1,37 @@
+@php
+    [$controllerName, $actionName] = explode('.', $currentRouteName);
+@endphp
+
+<nav class="mb-4 mt-4">
+    @if (in_array($actionName, ['index', 'create', 'edit', 'show', 'destroy']))
+        @php $cssClass = $actionName==='index' ? 'bg-gray-700 text-gray-200' : 'text-gray-700'; @endphp
+        <a class="{{ $cssClass }} border-gray-700 hover:bg-gray-800 hover:text-gray-200 hover:border-gray-800 border-2 mb-0.5 ml-1 mr-1 mt-0.5 pb-0.5 pl-1 pr-1 pt-0.5 rounded"
+            href="{{ route("$controllerName.index") }}">Index</a>
+    @endif
+
+    @if (in_array($actionName, ['index', 'create', 'edit', 'show', 'destroy']))
+        @php $cssClass = $actionName==='create' ? 'bg-green-700 text-green-200' : 'text-green-700'; @endphp
+        <a class="{{ $cssClass }} border-green-700 hover:bg-green-800 hover:text-green-200 hover:border-green-800 border-2 mb-0.5 ml-1 mr-1 mt-0.5 pb-0.5 pl-1 pr-1 pt-0.5 rounded"
+            href="{{ route("$controllerName.create") }}">Create</a>
+    @endif
+
+    @if (in_array($actionName, ['edit', 'show', 'destroy']))
+        @php $cssClass = $actionName==='edit' ? 'bg-yellow-700 text-yellow-200' : 'text-yellow-700'; @endphp
+        <a class="{{ $cssClass }} border-yellow-700 hover:bg-yellow-800 hover:text-yellow-200 hover:border-yellow-800 border-2 mb-0.5 ml-1 mr-1 mt-0.5 pb-0.5 pl-1 pr-1 pt-0.5 rounded"
+            href="{{ route("$controllerName.edit", ['{{ lowerModelName }}' => ${{ lowerModelName }}]) }}">Edit</a>
+    @endif
+
+    @if (in_array($actionName, ['edit', 'show', 'destroy']))
+        @php $cssClass = $actionName==='show' ? 'bg-blue-700 text-blue-200' : 'text-blue-700'; @endphp
+        <a class="{{ $cssClass }} border-blue-700 hover:bg-blue-800 hover:text-blue-200 hover:border-blue-800 border-2 mb-0.5 ml-1 mr-1 mt-0.5 pb-0.5 pl-1 pr-1 pt-0.5 rounded"
+            href="{{ route("$controllerName.show", ['{{ lowerModelName }}' => ${{ lowerModelName }}]) }}">Show</a>
+    @endif
+
+    @if (in_array($actionName, ['edit', 'show', 'destroy']))
+        @php $cssClass = $actionName==='destroy' ? 'bg-red-700 text-red-200' : 'text-red-700'; @endphp
+        <a class="btn-destroy {{ $cssClass }} border-red-700 hover:bg-red-800 hover:text-red-200 hover:border-red-800 border-2 mb-0.5 ml-1 mr-1 mt-0.5 pb-0.5 pl-1 pr-1 pt-0.5 rounded"
+            href="{{ route("$controllerName.destroy", ['{{ lowerModelName }}' => ${{ lowerModelName }}]) }}">Destroy</a>
+
+        @include('{{ pluralLowerModelName }}.destroy-confirm')
+    @endif
+</nav>

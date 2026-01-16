@@ -1,0 +1,35 @@
+{
+    "name": "totocsa/icseusda",
+    "version": "1.0.0",
+    "description": "A short description of your package",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Csaba Tóth",
+            "email": "totocsa@gmail.com"
+        }
+    ],
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Totocsa\\Icseusda\\": "./"
+        }
+    },
+    "require": {
+        "php": "^7.4|^8.0",
+        "laravel/framework": "^10.0|^11.0|^12.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Totocsa\\Icseusda\\IcseusdaServiceProvider"
+            ]
+        }
+    },
+    "repositories": [{
+        "name": "icseusda",
+        "type": "path",
+        "url": "./packages/icseusda/"
+    }]
+}
